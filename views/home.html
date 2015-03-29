@@ -14,54 +14,44 @@
   <link rel="stylesheet" href="/bootstrap/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/bootstrap/dist/css/bootstrap-theme.min.css">
 
-  <link href="/css/cover.css" rel="stylesheet">
   <link href="/css/app.css" rel="stylesheet">
 </head>
 
 <body>
 
-  <div class="site-wrapper">
 
-    <div class="site-wrapper-inner">
-
-      <div class="cover-container">
-
-        <div class="masthead clearfix">
-          <div class="inner">
-            <h3 class="masthead-brand">
-              <a href="#/">device-orientation</a>
-            </h3>
-            <nav>
-              <ul class="nav masthead-nav">
-                <li><a href="https://github.com/davideicardi/device-orientation">Source code</a>
-                </li>
-                <li><a href="http://www.davideicardi.com">About me</a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-
-        <div ng-view></div>
-
-        <div class="mastfoot">
-          <div class="inner">
-            <p>by Davide Icardi</p>
-          </div>
-        </div>
-
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#/">device-orientation</a>
       </div>
-
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="https://github.com/davideicardi/device-orientation">Source Code</a>
+          </li>
+          <li><a href="http://www.davideicardi.com">About Me</a>
+          </li>
+        </ul>
+      </div>
     </div>
+  </nav>
 
-  </div>
+  <div class="container-fluid" ng-view></div>
+
 
   <script src="/jquery/dist/jquery.min.js"></script>
   <script src="/angular/angular.min.js"></script>
   <script src="/angular-route/angular-route.min.js"></script>
   <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="/js/three.min.js"></script>
-  <script src="/js/qrcode-min.js"></script>
+  <script src="/qrcode-generator/js/qrcode.js"></script>
+  <script src="/angular-qrcode/qrcode.js"></script>
   <script src="/socket.io/socket.io.js"></script>
 
   <script src="/js/app.js"></script>

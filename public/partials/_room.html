@@ -1,11 +1,24 @@
-<div class="inner cover">
-    <h1 class="cover-heading">Room {{roomId}}</h1>
+<h1>Room {{roomId}}</h1>
 
-    <div id="canvasContainer">
-
+<div class="row">
+    <div class="col-lg-6">
+        <qrcode version="4" size="150" data="https://device-orientation-davideicardi-2.c9.io/#/remote/x" href="https://device-orientation-davideicardi-2.c9.io/#/remote/x"></qrcode>
     </div>
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">Device connected: {{device.name}}</div>
+          <div class="panel-body">
+            <p>Orientation: 
+            alpha <span class="badge">{{device.orientation.alpha | number:1}}</span>, 
+            beta <span class="badge">{{device.orientation.beta | number:1}}</span>,
+            gamma <span class="badge">{{device.orientation.gamma | number:1}}</span>
+            </p>
+          </div>
+        </div>
+    </div>
+</div>
 
-    <div id="qrcode"></div>
+<div id="canvasContainer">
 
 </div>
 
@@ -13,8 +26,9 @@
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(35, 800 / 600, 2.109, 213.014);
 
-    var renderer = new THREE.WebGLRenderer();
+    var renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(800, 600);
+    renderer.setClearColor( 0xffffff, 1);
 
     document.getElementById('canvasContainer').appendChild(renderer.domElement);
 
@@ -52,27 +66,4 @@
     window.TEMP_MODEL = model;
 
     render();
-</script>
-
-<script type="text/javascript">
-    var socket = io();
-
-    var pi = 3.14;
-    function degToRad(deg){
-        return deg * (pi/180);
-    }
-
-    socket.on('test-orientation', function(orientation) {
-
-        var isFaceDown = Math.abs(orientation.beta);
-        var x = isFaceDown > 90 ? -180 + (orientation.gamma + 90) : orientation.gamma + 90;
-        var y = isFaceDown > 90 ? 180 - orientation.beta : orientation.beta;
-
-        window.TEMP_MODEL.rotation.x = degToRad(x);
-        window.TEMP_MODEL.rotation.y = degToRad(y+90);
-    });
-</script>
-
-<script type="text/javascript">
-    new QRCode(document.getElementById("qrcode"), "https://device-orientation-davideicardi-2.c9.io/#/remote/x");
 </script>
