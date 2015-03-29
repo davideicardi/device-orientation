@@ -1,0 +1,64 @@
+<div class="inner cover">
+    <h1 class="cover-heading">Remote for room {{roomId}}</h1>
+
+
+</div>
+
+<script>
+    var socket = io();
+
+    var initialAlpha;
+    var lastOrientation = {
+        gamma: 0,
+        beta: 0,
+        alpha: 0
+    };
+
+    function isChanged(orientation) {
+        var threshold = 0.5;
+
+        var c = false;
+        if (Math.abs(lastOrientation.gamma - orientation.gamma) > threshold || Math.abs(lastOrientation.beta - orientation.beta) > threshold || Math.abs(lastOrientation.alpha - orientation.alpha) > threshold) {
+            c = true;
+            lastOrientation = orientation;
+        }
+
+        return c;
+    }
+
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', function(eventData) {
+
+                if (!initialAlpha) {
+                    initialAlpha = eventData.alpha;
+                }
+
+
+                var orientation = {
+                    // gamma is the left-to-right tilt in degrees, where right is positive.
+                    // Represents the motion of the device around the y axis, 
+                    //  represented in degrees with values ranging from -90 to 90. This represents a left to right motion of the device.
+                    gamma: eventData.gamma,
+
+                    // beta is the front-to-back tilt in degrees, where front is positive.
+                    // Represents the motion of the device around the x axis, 
+                    //  represented in degrees with values ranging from -180 to 180.  This represents a front to back motion of the device.
+                    beta: eventData.beta,
+
+                    // alpha is the compass direction the device is facing in degrees.
+                    // Represents the motion of the device around the z axis, 
+                    //  represented in degrees with values ranging from 0 to 360.
+                    alpha: initialAlpha - eventData.alpha
+                };
+
+                if (isChanged(orientation)) {
+                    socket.emit('test-orientation', orientation);
+                }
+            },
+            false);
+
+    }
+    else {
+        alert("Not supported on your device or browser.  Sorry.");
+    }
+</script>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>cloud-car track</title>
+<!-- Start javascript/main.js -->
+    <script src="/js/gamejs-2.0.1.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        require.setModuleRoot('./js');
+        require.run('main')
+    </script>
+</head>
+<body>
+    <div>
+        <img id="gjs-loader" src="/images/ajax-loader.gif">
+        <div id="qrcode" style="float:right"></div>
+        <canvas id="gjs-canvas"></canvas>
+    </div>
+    
+    <script src="/js/qrcode-min.js"></script>
+    <script type="text/javascript">
+        new QRCode(document.getElementById("qrcode"), "http://cloud-car-davideicardi-2.c9.io/deviceOrientation-remote.html");
+    </script>
+</body>
+</html>

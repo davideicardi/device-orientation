@@ -1,0 +1,78 @@
+<div class="inner cover">
+    <h1 class="cover-heading">Room {{roomId}}</h1>
+
+    <div id="canvasContainer">
+
+    </div>
+
+    <div id="qrcode"></div>
+
+</div>
+
+<script>
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(35, 800 / 600, 2.109, 213.014);
+
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(800, 600);
+
+    document.getElementById('canvasContainer').appendChild(renderer.domElement);
+
+    camera.position.x = 0;
+    camera.position.y = 10;
+    camera.position.z = 0;
+    camera.up = new THREE.Vector3(0, 0, 1);
+
+    var target = new THREE.Vector3(0.000, 0.000, 0.000);
+    camera.lookAt(target);
+
+    
+    var light = new THREE.PointLight(0x404040);
+    light.position.set(10, 10, 0);
+    scene.add(light);
+    light = new THREE.PointLight(0x404040);
+    light.position.set(10, 0, 10);
+    scene.add(light);
+    light = new THREE.PointLight(0x404040);
+    light.position.set(0.000, 10, 10);
+    scene.add(light);
+
+    var model = createSamsungModel();
+    scene.add(model);
+
+    var render = function() {
+        requestAnimationFrame(render);
+
+        //model.rotation.x += 0.1;
+        //model.rotation.y += 0.1;
+
+        renderer.render(scene, camera);
+    };
+
+    window.TEMP_MODEL = model;
+
+    render();
+</script>
+
+<script type="text/javascript">
+    var socket = io();
+
+    var pi = 3.14;
+    function degToRad(deg){
+        return deg * (pi/180);
+    }
+
+    socket.on('test-orientation', function(orientation) {
+
+        var isFaceDown = Math.abs(orientation.beta);
+        var x = isFaceDown > 90 ? -180 + (orientation.gamma + 90) : orientation.gamma + 90;
+        var y = isFaceDown > 90 ? 180 - orientation.beta : orientation.beta;
+
+        window.TEMP_MODEL.rotation.x = degToRad(x);
+        window.TEMP_MODEL.rotation.y = degToRad(y+90);
+    });
+</script>
+
+<script type="text/javascript">
+    new QRCode(document.getElementById("qrcode"), "https://device-orientation-davideicardi-2.c9.io/#/remote/x");
+</script>

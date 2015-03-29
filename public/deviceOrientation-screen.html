@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+
+  <style type="text/css">
+    .container {
+      perspective: 500px;
+    }
+    .logo {
+      margin-left: auto;
+      margin-right: auto;
+      display: block;      
+      height: 280px;
+    }
+    
+    #qrcode {
+    }
+
+  </style>
+
+</head>
+
+<body>
+  <div class="container">
+    <div id="qrcode"></div>
+    <img src="/images/samsung-galaxy-s3mini.jpg" id="imgLogo" class="logo">
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script type="text/javascript">
+    var socket = io();
+
+    var logo = document.getElementById("imgLogo");
+    
+    socket.on('test-orientation', function(orientation) {
+
+      var tr = "";
+
+      var isFaceDown = Math.abs(orientation.beta);
+      var x = isFaceDown > 90 ? -180 + (orientation.gamma + 90) : orientation.gamma + 90;
+      var z = isFaceDown > 90 ? 180 - orientation.beta : orientation.beta;
+      tr += "rotateX(" + x + "deg)";
+      tr += "rotateZ(" + z + "deg) ";
+
+      console.log("STEERING WHEEL:" + (Math.sin(degToRad(z)))); // from -1 (full left) to 1 (full right)
+      console.log("ACCELERATION:" + (Math.sin(degToRad(x)))); // from -1 (full brake) to 1 (full acceleration)
+
+      logo.style.transform = tr;
+    });
+
+    var pi = 3.14159265359;
+    function degToRad(deg) {
+      return deg * (pi/180);
+    }
+
+  </script>
+  
+  <script src="/js/qrcode-min.js"></script>
+  <script type="text/javascript">
+    new QRCode(document.getElementById("qrcode"), "http://cloud-car-davideicardi-2.c9.io/deviceOrientation-remote.html");
+  </script>
+  
+
+</body>
+</html>
