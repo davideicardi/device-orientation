@@ -47,8 +47,8 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
         $scope.roomId = $routeParams.roomId;
         $scope.device = { name: 'unknown', orientation : { gamma: 0, beta: 0, alpha: 0 } };
 
-        //var modelOrientation = null;
-        
+        $scope.samsungModel = createSamsungModel();
+
         function onDeviceOrientation(orientation){
 
             // show debug info            
@@ -62,17 +62,9 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
             var x = $scope.device.orientation.isFaceDown ? 180 + orientation.beta : orientation.beta; // beta
             var z = $scope.device.orientation.isFaceDown ? 180 + orientation.gamma : orientation.gamma; // gamma
 
-            window.TEMP_MODEL.rotation.x = THREE.Math.degToRad(x + 180);
-            window.TEMP_MODEL.rotation.y = THREE.Math.degToRad(y);
-            window.TEMP_MODEL.rotation.z = THREE.Math.degToRad(z + 180);
-            
-
-            
-            /*
-            if (!modelOrientation){
-                modelOrientation = new OrientationToObject(window.TEMP_MODEL);
-            }
-            modelOrientation.update(orientation);*/
+            $scope.samsungModel.rotation.x = THREE.Math.degToRad(x + 180);
+            $scope.samsungModel.rotation.y = THREE.Math.degToRad(y);
+            $scope.samsungModel.rotation.z = THREE.Math.degToRad(z + 180);
         }
     
         socketIOService.on('test-orientation', onDeviceOrientation);
@@ -143,3 +135,59 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
         });
     }
 ]);
+
+app.directive('diThreeJsViewer', [function() {
+
+  function link(scope, element, attrs) {
+      
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(35, 800 / 600, 2.109, 213.014);
+
+    var renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(800, 600);
+    renderer.setClearColor( 0xffffff, 1);
+
+    element.append(renderer.domElement);
+
+    camera.position.x = 0;
+    camera.position.y = 0;
+    camera.position.z = 10;
+    //camera.up = new THREE.Vector3(0, 0, 1);
+
+    var target = new THREE.Vector3(0.000, 0.000, 0.000);
+    camera.lookAt(target);
+
+    
+    var light = new THREE.PointLight(0x404040);
+    light.position.set(10, 10, 0);
+    scene.add(light);
+    light = new THREE.PointLight(0x404040);
+    light.position.set(10, 0, 10);
+    scene.add(light);
+    light = new THREE.PointLight(0x404040);
+    light.position.set(0.000, 10, 10);
+    scene.add(light);
+
+    var model = scope.threeJsObject;
+    scene.add(model);
+
+    var render = function() {
+        requestAnimationFrame(render);
+
+        //model.rotation.y += 0.01;
+
+        renderer.render(scene, camera);
+    };
+
+    render();
+  }
+
+  return {
+    restrict: 'E',
+    scope: {
+      threeJsObject: '='
+    },
+    template: '<div></div>',
+    link: link
+  };
+}]);
