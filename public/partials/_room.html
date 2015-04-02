@@ -33,9 +33,9 @@
     document.getElementById('canvasContainer').appendChild(renderer.domElement);
 
     camera.position.x = 0;
-    camera.position.y = 10;
-    camera.position.z = 0;
-    camera.up = new THREE.Vector3(0, 0, 1);
+    camera.position.y = 0;
+    camera.position.z = 10;
+    //camera.up = new THREE.Vector3(0, 0, 1);
 
     var target = new THREE.Vector3(0.000, 0.000, 0.000);
     camera.lookAt(target);
@@ -57,8 +57,7 @@
     var render = function() {
         requestAnimationFrame(render);
 
-        //model.rotation.x += 0.1;
-        //model.rotation.y += 0.1;
+        //model.rotation.y += 0.01;
 
         renderer.render(scene, camera);
     };

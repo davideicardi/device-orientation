@@ -1,3 +1,4 @@
+
 var app = angular.module('deviceOrientationApp', [
     'ngRoute',
     'monospaced.qrcode'
@@ -46,10 +47,7 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
         $scope.roomId = $routeParams.roomId;
         $scope.device = { name: 'unknown', orientation : { gamma: 0, beta: 0, alpha: 0 } };
 
-        var pi = 3.14159265359;
-        function degToRad(deg){
-            return deg * (pi/180);
-        }
+        var modelOrientation = null;
         
         function onDeviceOrientation(orientation){
 
@@ -57,15 +55,22 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
             $scope.device.orientation = orientation;
             $scope.$digest();
 
-            
+            /*
             var isFaceDown = Math.abs(orientation.beta);
-            //var x = isFaceDown > 90 ? -180 + (orientation.gamma + 90) : orientation.gamma + 90;
-            var x = orientation.gamma - 90;
-            //var y = isFaceDown > 90 ? 180 - orientation.beta : orientation.beta;
-            var z = orientation.beta;
-    
-            window.TEMP_MODEL.rotation.x = degToRad(x);
-            window.TEMP_MODEL.rotation.z = degToRad(z);
+            var y = isFaceDown ? -orientation.gamma : orientation.gamma;
+            var x = orientation.beta;
+            var z = 0;//orientation.alpha;
+
+            window.TEMP_MODEL.rotation.x = THREE.Math.degToRad(x + 180);
+            window.TEMP_MODEL.rotation.y = THREE.Math.degToRad(y);
+            window.TEMP_MODEL.rotation.z = THREE.Math.degToRad(z + 180);
+            */
+
+            
+            if (!modelOrientation){
+                modelOrientation = new OrientationToObject(window.TEMP_MODEL);
+            }
+            modelOrientation.update(orientation);
         }
     
         socketIOService.on('test-orientation', onDeviceOrientation);
