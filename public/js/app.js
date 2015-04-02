@@ -47,30 +47,32 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
         $scope.roomId = $routeParams.roomId;
         $scope.device = { name: 'unknown', orientation : { gamma: 0, beta: 0, alpha: 0 } };
 
-        var modelOrientation = null;
+        //var modelOrientation = null;
         
         function onDeviceOrientation(orientation){
 
             // show debug info            
             $scope.device.orientation = orientation;
+            $scope.device.orientation.isFaceDown = Math.abs(orientation.beta) > 90;
             $scope.$digest();
 
-            /*
-            var isFaceDown = Math.abs(orientation.beta);
-            var y = isFaceDown ? -orientation.gamma : orientation.gamma;
-            var x = orientation.beta;
-            var z = 0;//orientation.alpha;
+            
+            // rotate 3D model            
+            var y = $scope.device.orientation.isFaceDown ? 180 + orientation.alpha : orientation.alpha; // alpha
+            var x = $scope.device.orientation.isFaceDown ? 180 + orientation.beta : orientation.beta; // beta
+            var z = $scope.device.orientation.isFaceDown ? 180 + orientation.gamma : orientation.gamma; // gamma
 
             window.TEMP_MODEL.rotation.x = THREE.Math.degToRad(x + 180);
             window.TEMP_MODEL.rotation.y = THREE.Math.degToRad(y);
             window.TEMP_MODEL.rotation.z = THREE.Math.degToRad(z + 180);
-            */
+            
 
             
+            /*
             if (!modelOrientation){
                 modelOrientation = new OrientationToObject(window.TEMP_MODEL);
             }
-            modelOrientation.update(orientation);
+            modelOrientation.update(orientation);*/
         }
     
         socketIOService.on('test-orientation', onDeviceOrientation);
