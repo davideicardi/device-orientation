@@ -1,4 +1,9 @@
 
+// just to keep the IDE happy
+var io = io || null;
+var angular = angular || null;
+var THREE = THREE || null;
+
 var app = angular.module('deviceOrientationApp', [
     'ngRoute',
     'monospaced.qrcode'
