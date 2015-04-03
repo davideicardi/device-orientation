@@ -50,22 +50,30 @@ app.controller('HomeCtrl', ['$scope', '$routeParams', '$location', '$http',
 app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
     function($scope, $routeParams, socketIOService) {
         $scope.roomId = $routeParams.roomId;
-        $scope.device = { name: 'unknown', orientation : { gamma: 0, beta: 0, alpha: 0 } };
+        $scope.device = { name: 'unknown', orientation : { gamma: 0, beta: 0, alpha: 0, isFaceDown:false } };
+
+        $scope.screenRotationY = 0;
 
         $scope.samsungModel = createSamsungModel();
 
         function onDeviceOrientation(orientation){
 
+            var isFaceDown = Math.abs(orientation.beta) > 90;
+
             // show debug info            
             $scope.device.orientation = orientation;
-            $scope.device.orientation.isFaceDown = Math.abs(orientation.beta) > 90;
+            $scope.device.orientation.isFaceDown = isFaceDown
             $scope.$digest();
 
-            
             // rotate 3D model            
-            var y = $scope.device.orientation.isFaceDown ? 180 + orientation.alpha : orientation.alpha; // alpha
-            var x = $scope.device.orientation.isFaceDown ? 180 + orientation.beta : orientation.beta; // beta
-            var z = $scope.device.orientation.isFaceDown ? 180 + orientation.gamma : orientation.gamma; // gamma
+            var x = isFaceDown ? 180 + orientation.beta : orientation.beta; // beta
+            var y = isFaceDown ? 180 + orientation.alpha : orientation.alpha; // alpha
+            var z = isFaceDown ? 180 + orientation.gamma : orientation.gamma; // gamma
+
+
+            // actual screen orientation fix
+            y = y + $scope.screenRotationY;
+            
 
             $scope.samsungModel.rotation.x = THREE.Math.degToRad(x + 180);
             $scope.samsungModel.rotation.y = THREE.Math.degToRad(y);
