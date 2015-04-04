@@ -6,3 +6,9 @@ body {
   padding: 40px 15px;
   text-align: center;
 }
+
+.device3DModel canvas {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}

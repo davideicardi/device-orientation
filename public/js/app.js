@@ -50,11 +50,11 @@ app.controller('HomeCtrl', ['$scope', '$routeParams', '$location', '$http',
 app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
     function($scope, $routeParams, socketIOService) {
         $scope.roomId = $routeParams.roomId;
-        $scope.device = { name: 'unknown', orientation : { gamma: 0, beta: 0, alpha: 0, isFaceDown:false } };
+        $scope.device = { 
+            orientation : { gamma: 0, beta: 0, alpha: 0, isFaceDown:false } 
+        };
 
-        $scope.screenRotationY = 0;
-
-        $scope.samsungModel = createSamsungModel();
+        $scope.device3DModel = createSamsungModel();
 
         function onDeviceOrientation(orientation){
 
@@ -62,22 +62,18 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
 
             // show debug info            
             $scope.device.orientation = orientation;
-            $scope.device.orientation.isFaceDown = isFaceDown
+            $scope.device.orientation.isFaceDown = isFaceDown;
             $scope.$digest();
 
-            // rotate 3D model            
+            // rotate 3D model applying a correction when the device is face down
             var x = isFaceDown ? 180 + orientation.beta : orientation.beta; // beta
             var y = isFaceDown ? 180 + orientation.alpha : orientation.alpha; // alpha
             var z = isFaceDown ? 180 + orientation.gamma : orientation.gamma; // gamma
 
 
-            // actual screen orientation fix
-            y = y + $scope.screenRotationY;
-            
-
-            $scope.samsungModel.rotation.x = THREE.Math.degToRad(x + 180);
-            $scope.samsungModel.rotation.y = THREE.Math.degToRad(y);
-            $scope.samsungModel.rotation.z = THREE.Math.degToRad(z + 180);
+            $scope.device3DModel.rotation.x = THREE.Math.degToRad(x + 180);
+            $scope.device3DModel.rotation.y = THREE.Math.degToRad(y - 90);
+            $scope.device3DModel.rotation.z = THREE.Math.degToRad(z + 180);
         }
     
         socketIOService.on('test-orientation', onDeviceOrientation);
@@ -91,16 +87,18 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
 app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOService',
     function($scope, $routeParams, $window, socketIOService) {
         $scope.roomId = $routeParams.roomId;
-        $scope.threshold = 0.5;
+        $scope.threshold = 1.0;
         
         var lastOrientation = { gamma: 0, beta: 0, alpha: 0 };
-        var initialAlpha;
+        var initialAlpha = null;
         
         function isChanged(orientation) {
             var threshold = $scope.threshold;
 
             var c = false;
-            if (Math.abs(lastOrientation.gamma - orientation.gamma) > threshold || Math.abs(lastOrientation.beta - orientation.beta) > threshold || Math.abs(lastOrientation.alpha - orientation.alpha) > threshold) {
+            if (Math.abs(lastOrientation.gamma - orientation.gamma) > threshold 
+            || Math.abs(lastOrientation.beta - orientation.beta) > threshold 
+            || Math.abs(lastOrientation.alpha - orientation.alpha) > threshold) {
                 c = true;
                 lastOrientation = orientation;
             }
@@ -128,8 +126,12 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
                 // alpha is the compass direction the device is facing in degrees.
                 // Represents the motion of the device around the z axis, 
                 //  represented in degrees with values ranging from 0 to 360.
-                alpha: initialAlpha - eventData.alpha
+                alpha: eventData.alpha
             };
+
+            // fix the alpha so that it correspond to the difference between the current degrees and the initial degrees
+            // otherwise it usually represents just the orientation relative to the NORTH
+            orientation.alpha = initialAlpha - orientation.alpha;
 
             if (isChanged(orientation)) {
                 socketIOService.emit('test-orientation', orientation);
@@ -146,18 +148,25 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
         $scope.$on("$destroy", function() {
             $window.removeEventListener('deviceorientation', onDeviceOrientation, false);
         });
+        
+        $scope.resetAlpha = function(){
+            initialAlpha = null;
+        }
     }
 ]);
 
 app.directive('diThreeJsViewer', [function() {
 
   function link(scope, element, attrs) {
-      
+    
+    var width = 400;
+    var height = 400;
+    
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(35, 800 / 600, 2.109, 213.014);
+    var camera = new THREE.PerspectiveCamera(35, width / height, 2.109, 213.014);
 
     var renderer = new THREE.WebGLRenderer({ alpha: true });
-    renderer.setSize(800, 600);
+    renderer.setSize(width, height);
     renderer.setClearColor( 0xffffff, 1);
 
     element.append(renderer.domElement);
@@ -167,8 +176,7 @@ app.directive('diThreeJsViewer', [function() {
     camera.position.z = 10;
     //camera.up = new THREE.Vector3(0, 0, 1);
 
-    var target = new THREE.Vector3(0.000, 0.000, 0.000);
-    camera.lookAt(target);
+    camera.lookAt(new THREE.Vector3(0.000, 0.000, 0.000)); // look at the center 
 
     
     var light = new THREE.PointLight(0x404040);
@@ -200,7 +208,6 @@ app.directive('diThreeJsViewer', [function() {
     scope: {
       threeJsObject: '='
     },
-    template: '<div></div>',
     link: link
   };
 }]);

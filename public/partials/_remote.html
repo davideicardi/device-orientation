@@ -1,4 +1,4 @@
-<h1>Remote for room {{::roomId}}</h1>
+<h1>Room {{::roomId}}</h1>
 
 <p class="text-danger" ng-if="errorMessage">{{errorMessage}}</p>
 
@@ -6,3 +6,4 @@
     Use the orientation of this device to interact with the connected room.
 </p>
 
+<button class="btn" ng-click="resetAlpha()">Reset alpha orientation.</button>
