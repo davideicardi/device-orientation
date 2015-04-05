@@ -54,7 +54,26 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
             orientation : { gamma: 0, beta: 0, alpha: 0, isFaceDown:false } 
         };
 
-        $scope.device3DModel = createSamsungModel();
+        function loadModel() {
+    		var onProgress = function ( xhr ) {
+    			if ( xhr.lengthComputable ) {
+    				var percentComplete = xhr.loaded / xhr.total * 100;
+    				console.log( Math.round(percentComplete, 2) + '% downloaded' );
+    			}
+    		};
+    
+    		var onError = function ( xhr ) {
+    		};
+    
+    		var loader = new THREE.OBJMTLLoader();
+    		loader.load( '/models/s4.obj', '/models/s4.mtl', function ( object ) {
+    
+    			$scope.device3DModel = object;
+    			$scope.$digest();
+    
+    		}, onProgress, onError );
+        }
+        loadModel();
 
         function onDeviceOrientation(orientation){
 
@@ -71,9 +90,11 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
             var z = isFaceDown ? 180 + orientation.gamma : orientation.gamma; // gamma
 
 
-            $scope.device3DModel.rotation.x = THREE.Math.degToRad(x + 180);
-            $scope.device3DModel.rotation.y = THREE.Math.degToRad(y - 90);
-            $scope.device3DModel.rotation.z = THREE.Math.degToRad(z + 180);
+            if ($scope.device3DModel) {
+                $scope.device3DModel.rotation.x = THREE.Math.degToRad(x);
+                $scope.device3DModel.rotation.y = THREE.Math.degToRad(y);
+                $scope.device3DModel.rotation.z = THREE.Math.degToRad(z);
+            }
         }
     
         socketIOService.on('test-orientation', onDeviceOrientation);
@@ -157,57 +178,71 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
 
 app.directive('diThreeJsViewer', [function() {
 
-  function link(scope, element, attrs) {
+    function createThreeJsCanvas(parentElement, object) {
+        var width = 400;
+        var height = 400;
+        
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(35, width / height, 2.109, 213.014);
     
-    var width = 400;
-    var height = 400;
+        var renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(width, height);
+        renderer.setClearColor( 0xffffff, 1);
     
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(35, width / height, 2.109, 213.014);
-
-    var renderer = new THREE.WebGLRenderer({ alpha: true });
-    renderer.setSize(width, height);
-    renderer.setClearColor( 0xffffff, 1);
-
-    element.append(renderer.domElement);
-
-    camera.position.x = 0;
-    camera.position.y = 0;
-    camera.position.z = 10;
-    //camera.up = new THREE.Vector3(0, 0, 1);
-
-    camera.lookAt(new THREE.Vector3(0.000, 0.000, 0.000)); // look at the center 
-
+        parentElement.append(renderer.domElement);
     
-    var light = new THREE.PointLight(0x404040);
-    light.position.set(10, 10, 0);
-    scene.add(light);
-    light = new THREE.PointLight(0x404040);
-    light.position.set(10, 0, 10);
-    scene.add(light);
-    light = new THREE.PointLight(0x404040);
-    light.position.set(0.000, 10, 10);
-    scene.add(light);
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 20;
+        //camera.up = new THREE.Vector3(0, 0, 1);
+    
+        camera.lookAt(new THREE.Vector3(0.000, 0.000, 0.000)); // look at the center 
+    
+        
+        var light = new THREE.PointLight(0x404040, 2);
+        light.position.set(20, 20, 0);
+        scene.add(light);
+        light = new THREE.PointLight(0x404040, 2);
+        light.position.set(20, 0, 20);
+        scene.add(light);
+        light = new THREE.PointLight(0x404040, 2);
+        light.position.set(0, 20, 20);
+        scene.add(light);
 
-    var model = scope.threeJsObject;
-    scene.add(model);
+        light = new THREE.AmbientLight(0x404040);
+        scene.add(light);
 
-    var render = function() {
-        requestAnimationFrame(render);
 
-        //model.rotation.y += 0.01;
+        // add object    
+        scene.add(object);
+    
+        var render = function() {
+            requestAnimationFrame(render);
+    
+            //model.rotation.y += 0.01;
+    
+            renderer.render(scene, camera);
+        };
+    
+        render();        
+    }
 
-        renderer.render(scene, camera);
+    function link(scope, element, attrs) {
+    
+        scope.$watch("threeJsObject", function(){
+            
+            if (scope.threeJsObject) {
+                createThreeJsCanvas(element, scope.threeJsObject);
+            }
+            
+        }, false);
+    }
+
+    return {
+        restrict: 'E',
+        scope: {
+          threeJsObject: '='
+        },
+        link: link
     };
-
-    render();
-  }
-
-  return {
-    restrict: 'E',
-    scope: {
-      threeJsObject: '='
-    },
-    link: link
-  };
 }]);
