@@ -92,8 +92,8 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
 
             if ($scope.device3DModel) {
                 $scope.device3DModel.rotation.x = THREE.Math.degToRad(x);
-                $scope.device3DModel.rotation.y = THREE.Math.degToRad(y);
-                $scope.device3DModel.rotation.z = THREE.Math.degToRad(z);
+                $scope.device3DModel.rotation.y = THREE.Math.degToRad(-y); // fix rotation, not sure why...
+                $scope.device3DModel.rotation.z = THREE.Math.degToRad(-z); // fix rotation, not sure why...
             }
         }
     
