@@ -32,7 +32,28 @@ app.config(['$routeProvider',
 ]);
 
 // socket.io wrapper
-app.value('socketIOService', io());
+function socketIOConnection(namespace) {
+
+    this.namespace = namespace || '/';
+    this.socket =  io(namespace, {multiplex : false}); // multiplex=false is needed because I close and reopen the connection based on the angular navigation
+    
+    this.disconnect = function() {
+        this.socket.disconnect();
+        this.socket = null;
+    };
+    this.emit = function(eventId, data) {
+      this.socket.emit(eventId, data);
+    };
+    this.on = function(eventId, listener) {
+      this.socket.on(eventId, listener);
+    };
+}
+
+app.value('socketIOService', {
+    connect : function(namespace){
+        return new socketIOConnection(namespace);
+    }
+});
 
 app.controller('HomeCtrl', ['$scope', '$routeParams', '$location', '$http',
     function($scope, $routeParams, $location, $http) {
@@ -50,6 +71,7 @@ app.controller('HomeCtrl', ['$scope', '$routeParams', '$location', '$http',
 app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
     function($scope, $routeParams, socketIOService) {
         $scope.roomId = $routeParams.roomId;
+        $scope.remote = null;
         $scope.device = { 
             orientation : { gamma: 0, beta: 0, alpha: 0, isFaceDown:false } 
         };
@@ -75,6 +97,14 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
         }
         loadModel();
 
+        function onRemoteConnected(data) {
+            $scope.remote = data;
+            $scope.$digest();
+        }
+        function onRemoteDisconnected() {
+            $scope.remote = null;
+            $scope.$digest();
+        }
         function onDeviceOrientation(orientation){
 
             var isFaceDown = Math.abs(orientation.beta) > 90;
@@ -97,10 +127,18 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
             }
         }
     
-        socketIOService.on('test-orientation', onDeviceOrientation);
+        var socket = socketIOService.connect();
+        socket.on('connect', function(){
+            socket.emit('initRoom', { roomId: $scope.roomId });
+        });
+
+        socket.on('remote-connected', onRemoteConnected);
+        socket.on('remote-disconnected', onRemoteDisconnected);
+        socket.on('remote-orientation', onDeviceOrientation);
 
         $scope.$on("$destroy", function() {
-            socketIOService.removeListener('test-orientation', onDeviceOrientation);
+            //socketIOService.removeListener('test-orientation', onDeviceOrientation);
+            socket.disconnect();
         });
     }
 ]);
@@ -113,6 +151,11 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
         var lastOrientation = { gamma: 0, beta: 0, alpha: 0 };
         var initialAlpha = null;
         
+        var socket = socketIOService.connect();
+        socket.on('connect', function(){
+            socket.emit('initRemote', { roomId: $scope.roomId });
+        });
+
         function isChanged(orientation) {
             var threshold = $scope.threshold;
 
@@ -155,7 +198,7 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
             orientation.alpha = initialAlpha - orientation.alpha;
 
             if (isChanged(orientation)) {
-                socketIOService.emit('test-orientation', orientation);
+                socket.emit('remote-orientation', orientation);
             }
         }
         
@@ -166,13 +209,14 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
             $scope.errorMessage = "deviceorientation not supported on your device or browser.  Sorry.";
         }
 
-        $scope.$on("$destroy", function() {
-            $window.removeEventListener('deviceorientation', onDeviceOrientation, false);
-        });
-        
         $scope.resetAlpha = function(){
             initialAlpha = null;
-        }
+        };
+
+        $scope.$on("$destroy", function() {
+            $window.removeEventListener('deviceorientation', onDeviceOrientation, false);
+            socket.disconnect();
+        });
     }
 ]);
 

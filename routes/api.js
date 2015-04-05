@@ -1,11 +1,10 @@
 "use strict";
 
-var roomCount = 0;
+var rooms = require("./../rooms.js");
+
 function reserveRoom(req, res) {
     
-    roomCount++;
-    
-    res.json({roomId: roomCount});
+    res.json({roomId: rooms.reserveRoom()});
     
 }
 

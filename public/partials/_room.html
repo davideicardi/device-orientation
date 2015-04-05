@@ -15,6 +15,10 @@
         <img src="/images/deviceOrientation.png" class="img-responsive" />
     </div>
     <div class="col-lg-3">
+        <h3>Status: 
+            <span ng-if="remote" class="label label-success">CONNECTED</span>
+            <span ng-if="!remote" class="label label-default">DISCONNECTED</span>
+        </h3>
         <div class="panel panel-default">
           <div class="panel-heading">Debug info</div>
           <div class="panel-body">

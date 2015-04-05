@@ -36,16 +36,7 @@ http.listen(config.web.port, function(){
 });
 
 
+// rooms
+require("./rooms.js").init(socketIO);
 
-// test sockets implementation
-socketIO.on('connection', function(socket){
-  console.log('a user connected');
 
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
-
-  socket.on('test-orientation', function (data) {
-    socket.broadcast.emit('test-orientation', data);
-  });
-});
