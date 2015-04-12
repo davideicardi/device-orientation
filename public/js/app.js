@@ -58,12 +58,20 @@ app.value('socketIOService', {
 app.controller('HomeCtrl', ['$scope', '$routeParams', '$location', '$http',
     function($scope, $routeParams, $location, $http) {
 
+        $scope.reservedRooms = null;
+        
+        $http.get('/api/rooms').
+        success(function(data, status, headers, config) {
+            $scope.reservedRooms = data.count;
+        });
+
+
         $scope.startRoom = function() {
-            $http.get('/api/reserveRoom').
+            $http.put('/api/reserveRoom').
             success(function(data, status, headers, config) {
                 $location.path('/rooms/' + data.roomId);
             });
-        }
+        };
 
     }
 ]);
