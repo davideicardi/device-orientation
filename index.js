@@ -24,7 +24,6 @@ var socketIO = require('socket.io')(http);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-app.use(express.static(__dirname + '/bower_components'));
 
 // routes
 require("./routes/api.js").init(app);
