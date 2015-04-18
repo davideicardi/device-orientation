@@ -1,6 +1,15 @@
 # device-orientation
 
 
+## Installation
+
+    npm install
+    bower install
+    
+## Run
+
+    npm run start
+
 
 ## Credits
 

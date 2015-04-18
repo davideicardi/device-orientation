@@ -28,6 +28,5 @@
   },
   "_source": "git://github.com/jiyinyiyong/three.js.git",
   "_target": "~0.70.0",
-  "_originalSource": "three.js",
-  "_direct": true
+  "_originalSource": "three.js"
 }

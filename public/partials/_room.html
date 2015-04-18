@@ -1,23 +1,19 @@
 <h1>Room {{roomId}}</h1>
 
 <div class="row">
-    <div class="col-sm-4">
-        <h3>1 - Take your smartphone</h3>
-        <img src="/images/smartphone.png" />
-    </div>
-    <div class="col-sm-4">
-        <h3>2 - Scan this QR code</h3>
+    <div class="col-sm-6">
+        <h3>Pair your smartphone scanning QR code below</h3>
         <qrcode version="4" size="150" data="http://device-orientation-davideicardi-2.c9.io/#/remote/{{roomId}}" href="http://device-orientation-davideicardi-2.c9.io/#/remote/{{roomId}}"></qrcode>
-        <p>or go to <b>http://device-orientation-davideicardi-2.c9.io/#/remote/{{roomId}}</b></p>
+        <img class="pull-left" src="/images/smartphone.png" />
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-6">
         <div class="panel panel-default">
           <div class="panel-heading">Debug info</div>
           <div class="panel-body">
             <p>
                 Device status: 
                 <span ng-if="remote" class="label label-success">CONNECTED</span>
-                <span ng-if="!remote" class="label label-default">DISCONNECTED</span>
+                <span ng-if="!remote" class="label label-danger">DISCONNECTED</span>
             </p>
             <p>Orientation: 
                 alpha <span class="badge">{{device.orientation.alpha | number:1}}</span>, 
@@ -31,10 +27,11 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <h3>Here your device!</h3>
         <di-three-js-viewer class="device3DModel" three-js-object="device3DModel"></di-three-js-viewer>
         <p>
-            To calibrate orientation put your smartphone vertical pointing the screen and then click "Reset alpha orientation" button.
+            <span class="label label-warning">IMPORTANT</span>
+            To calibrate your smartphone leave it vertical and position it in front of the screen, then click "Reset alpha orientation" button on your smartphone.
+            Not all orientation are supported...
         </p>
     </div>
 </div>

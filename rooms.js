@@ -14,18 +14,40 @@ function Room(id) {
 }
 
 Room.prototype.connectRemoteDevice = function(socket, data){
+            
+    if (!this.reserved){
+        // TODO handle error on client
+        socket.emit("room-error", "Room not reserved");
+        return;
+    }
+
     if (this.isConnectedRemoteDevice()){
-        throw "Already connected";
+        // TODO handle error on client
+        socket.emit("room-error", "Room already connected to another remote");
+        return;
     }
 
     this.remote = { socket : socket, data: data };
+    
+    var currentRoom = this;
+    
+    socket.on('remote-orientation', function (orientationData) {
+        _socketIO.to(currentRoom.id).emit('remote-orientation', orientationData);
+    });
+    
     this.notifyIfRemoteIsConnected();
+    
+    socket.on('disconnect', function(){
+        currentRoom.disconnectRemoteDevice();
+    });
 };
 
 Room.prototype.notifyIfRemoteIsConnected = function(){
     if (this.remote){
-        _socketIO.to(this.id).emit('remote-connected', this.remote.data);
         console.log("Room remote connected: " + this.id);
+        
+        _socketIO.to(this.id).emit('remote-connected', this.remote.data);
+        this.remote.socket.emit("room-connected", {});
     }
 };
 
@@ -40,14 +62,63 @@ Room.prototype.isConnectedRemoteDevice = function(){
     return !!(this.remote);
 };
 
+Room.prototype.open = function() {
+    if (this.reserved){
+        throw "Room already reserved";
+    }
+    
+    console.log('Opening room ' + this.id);
+    
+    this.reserved = true;
+};
 
-// init rooms
-var i;
-for (i = 0; i < MAX_ROOMS; i++) {
-    _reservedRooms[i] = new Room(i);
-}
+Room.prototype.close = function() {
+    console.log('Closing room ' + this.id);
+    
+    this.reserved = false;
+
+    if (this.remote){
+        this.remote.socket.emit("room-disconnected", {});
+    }
+};
+
+Room.prototype.addScreen = function(socket) {
+    console.log('Adding screen to room ' + this.id);
+
+    _reservedRooms[this.id].screenSockets.push(socket);
+    socket.join(this.id);
+
+    this.notifyIfRemoteIsConnected();
+    
+    var currentRoom = this;
+    socket.on('disconnect', function(){
+        currentRoom.removeScreen(socket);
+    });
+};
+
+Room.prototype.removeScreen = function(socket) {
+    console.log('Removing screen from room ' + this.id);
+
+    var index = this.screenSockets.indexOf(socket);
+    if (index >= 0) {
+      this.screenSockets.splice( index, 1 );
+    }
+    
+    if (this.screenSockets.length == 0){
+        this.close();
+    }
+};
+
 
 function init(socketIO){
+    
+    // create rooms
+    var i;
+    for (i = 0; i < MAX_ROOMS; i++) {
+        _reservedRooms[i] = new Room(i);
+    }
+    
+    
     _socketIO = socketIO;
     _socketIO.on('connection', function(socket){
     
@@ -55,77 +126,25 @@ function init(socketIO){
             var room = getRoom(data.roomId);
 
             if (!room.reserved){
-                reserveRoom(room.id);
+                room.open();
             }
 
-            socket.join(room.id);
-            _reservedRooms[room.id].screenSockets.push(socket);
-
-            console.log('Room ready: ' + room.id);
-            
-            room.notifyIfRemoteIsConnected();
-            
-            socket.on('disconnect', function(){
-                var index = room.screenSockets.indexOf(socket);
-                if (index >= 0) {
-                  room.screenSockets.splice( index, 1 );
-                }
-                
-                if (room.screenSockets.length == 0){
-                    unreserveRoom(room.id);
-                    console.log('Room closed: ' + room.id);
-                }
-                else {
-                    console.log('Room socket removed: ' + room.id);
-                }
-            });
+            room.addScreen(socket);
         });
         
         socket.on('initRemote', function (initData) {
-
             var room = getRoom(initData.roomId);
-            
-            if (!isRoomReserved(initData.roomId)){
-                // TODO handle error on client
-                console.log('Room not reserved: ' + initData.roomId);
-                return;
-            }
 
-            if (room.isConnectedRemoteDevice()){
-                // TODO handle error on client
-                console.log('Room already has a remote: ' + room.id);
-                return;
-            }
-            
             room.connectRemoteDevice(socket, initData);
-
-            socket.on('remote-orientation', function (orientationData) {
-                socketIO.to(room.id).emit('remote-orientation', orientationData);
-            });
-            
-            socket.on('disconnect', function(){
-                room.disconnectRemoteDevice();
-            });
         });        
     });
 
 }
 
 function reserveRoom(roomId) {
-    
     var room = getRoom(roomId);
 
-    if (room.reserved){
-        throw "Room already reserved";
-    }
-    
-    room.reserved = true;
-}
-
-function unreserveRoom(roomId) {
-    var room = getRoom(roomId);
-
-    room.reserved = false;
+    room.open();
 }
 
 function findAvailableRoom() {

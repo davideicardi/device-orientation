@@ -115,7 +115,7 @@ app.controller('RoomCtrl', ['$scope', '$routeParams', 'socketIOService',
         }
         function onDeviceOrientation(orientation){
 
-            var isFaceDown = Math.abs(orientation.beta) > 90;
+            var isFaceDown = Math.abs(orientation.beta) >= 90;
 
             // show debug info            
             $scope.device.orientation = orientation;
@@ -155,6 +155,8 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
     function($scope, $routeParams, $window, socketIOService) {
         $scope.roomId = $routeParams.roomId;
         $scope.threshold = 1.0;
+        $scope.connected = false;
+        $scope.errors = [];
         
         var lastOrientation = { gamma: 0, beta: 0, alpha: 0 };
         var initialAlpha = null;
@@ -163,6 +165,23 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
         socket.on('connect', function(){
             socket.emit('initRemote', { roomId: $scope.roomId });
         });
+        
+        function onRoomConnected(){
+            $scope.connected = true;
+            $scope.$digest();
+        }
+        function onRoomDisconnected(){
+            $scope.connected = false;
+            $scope.$digest();
+        }
+        function onRoomError(msg){
+            $scope.errors.push(msg);
+            $scope.$digest();
+        }
+        
+        socket.on('room-connected', onRoomConnected);
+        socket.on('room-disconnected', onRoomDisconnected);
+        socket.on('room-error', onRoomError);
 
         function isChanged(orientation) {
             var threshold = $scope.threshold;
@@ -214,7 +233,7 @@ app.controller('RemoteCtrl', ['$scope', '$routeParams', '$window', 'socketIOServ
             $window.addEventListener('deviceorientation', onDeviceOrientation, false);
         }
         else {
-            $scope.errorMessage = "deviceorientation not supported on your device or browser.  Sorry.";
+            $scope.errors.push("deviceorientation not supported on your device or browser.  Sorry.");
         }
 
         $scope.resetAlpha = function(){

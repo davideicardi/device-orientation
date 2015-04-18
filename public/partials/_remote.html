@@ -1,6 +1,15 @@
-<h1>Room {{::roomId}}</h1>
+<h1>
+    Room {{::roomId}}
+</h1>
 
-<p class="text-danger" ng-if="errorMessage">{{errorMessage}}</p>
+<p>
+    <span ng-if="connected" class="label label-success">CONNECTED</span>
+    <span ng-if="!connected" class="label label-danger">DISCONNECTED</span>
+</p>
+
+<ul ng-if="errors.length > 0">
+    <li ng-repeat="e in errors" class="text-danger">{{e}}</li>
+</ul>
 
 <p class="text-success" ng-if="!errorMessage">
     Use the orientation of this device to interact with the connected room.

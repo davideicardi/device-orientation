@@ -1,0 +1,13 @@
+{
+  "name": "OBJMTLLoader",
+  "_cacheHeaders": {
+    "ETag": "\"b753fa176d412f27235129f7a344e0d5b6ef0f08\"",
+    "Content-Length": "8866",
+    "Content-Type": "text/plain; charset=utf-8"
+  },
+  "_release": "e-tag:b753fa176",
+  "main": "index.js",
+  "_source": "https://raw.githubusercontent.com/mrdoob/three.js/468f1cde0b7391267e11fd6bd1dc7d6e28ae16f6/examples/js/loaders/MTLLoader.js",
+  "_target": "*",
+  "_originalSource": "https://raw.githubusercontent.com/mrdoob/three.js/468f1cde0b7391267e11fd6bd1dc7d6e28ae16f6/examples/js/loaders/MTLLoader.js"
+}
